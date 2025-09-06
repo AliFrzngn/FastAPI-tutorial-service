@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query, status, HTTPException, Path
+from fastapi import FastAPI, Query, status, HTTPException, Path, Form, Body
 from fastapi.responses import JSONResponse
 import random
 
@@ -41,14 +41,14 @@ def retrieve_names_detail(name_id:int = Path(title = "object id in name",
             return name
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Object Not Found")
 
-@app.post("/names")
-def create_name(name:str):
+@app.post("/names", status_code=status.HTTP_201_CREATED)
+def create_name(name:str = Body(embed=True)):
     name_obj ={"id": random.randint(6,100), "name": name}
     names_list.append(name_obj)
     return name_obj
 
 @app.put("/names/{name_id}",status_code=status.HTTP_200_OK)
-def update_names_detail(name_id: int, name: str):
+def update_names_detail(name_id: int = Path(), name: str = Form()):
     for item in names_list:
         if item["id"] == name_id:
             item["name"] = name
