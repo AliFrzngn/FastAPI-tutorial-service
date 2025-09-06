@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, status, HTTPException
 import random
 
 app = FastAPI()
@@ -18,7 +18,7 @@ def root():
     return {"message": "Hello, World!"}
 
 
-@app.get("/names")
+@app.get("/names",status_code=status.HTTP_201_CREATED)
 def retrieve_names_list(q : str | None = Query(default = None, max_length=50)):
     if q:
         return [item for item in names_list if item ["name"] == q]
@@ -30,7 +30,7 @@ def retrieve_names_detail(name_id:int):
     for name in names_list:
         if name["id"] == name_id:
             return name
-    return {"detail": "Object Not Found!"}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Object Not Found")
 
 @app.post("/names")
 def create_name(name:str):
@@ -38,18 +38,18 @@ def create_name(name:str):
     names_list.append(name_obj)
     return name_obj
 
-@app.put("/names/{name_id}")
+@app.put("/names/{name_id}",status_code=status.HTTP_200_OK)
 def update_names_detail(name_id: int, name: str):
     for item in names_list:
         if item["id"] == name_id:
             item["name"] = name
             return name
-    return {"detail": "object not found"}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Object Not Found")
 
-@app.delete("/names/{name_id}")
+@app.delete("/names/{name_id}",status_code=status.HTTP_204_NO_CONTENT)
 def delete_name(name_id: int):
     for item in names_list:
         if item["id"] == name_id:
             names_list.remove(item)
             return {"detail": "object removed succesfully"}
-    return {"detail": "object not found"}
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Object Not Found")
