@@ -1,8 +1,27 @@
-from fastapi import FastAPI, Query, status, HTTPException, Path, Form, Body
+from fastapi import FastAPI, Query, status, HTTPException, Path, Form, Body, File, UploadFile
 from fastapi.responses import JSONResponse
+from typing import List
 import random
+from contextlib import asynccontextmanager
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("App says hello")
+    yield
+    print("App says goodbye")
+
+
+app = FastAPI(lifespan=lifespan)
+
+@app.on_event("startup")
+async def startup_even():
+    print("starting")
+
+
+@app.on_event("shutdown")
+async def shutdown_even():
+    print("shuting down")
 
 
 names_list = [
@@ -62,3 +81,16 @@ def delete_name(name_id: int):
             names_list.remove(item)
             return JSONResponse(content = {"detail": "Object Removed!"}, status_code = status.HTTP_200_OK)
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Object Not Found")
+
+@app.post("/upload_file")
+async def upload_file(file: UploadFile = File(...)):
+    content = await file.read()
+    print(file.__dict__)
+    return {"file_name": file.filename, "content_type": file.content_type, "file_size": len(content)}
+
+@app.post("/upload_multiple")
+async def upload_multiple(files: List[UploadFile]):
+    return[
+        {"filename": file.filename, "content_type": file.content_type}
+        for file in files
+    ]
