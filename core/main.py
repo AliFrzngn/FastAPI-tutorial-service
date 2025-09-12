@@ -14,15 +14,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-@app.on_event("startup")
-async def startup_even():
-    print("starting")
-
-
-@app.on_event("shutdown")
-async def shutdown_even():
-    print("shuting down")
-
 
 names_list = [
     {"id":1, "name": "ali"},
