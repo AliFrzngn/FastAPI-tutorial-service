@@ -22,7 +22,7 @@ names_list = [
     {"id":2, "name": "maryam"},
     {"id":3, "name": "arousha"},
     {"id":4, "name": "zahra"},
-    {"id":5, "name": "BAgher"}
+    {"id":5, "name": "bagher"}
 ]
 
 
