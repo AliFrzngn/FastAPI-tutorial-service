@@ -3,7 +3,10 @@ from fastapi.responses import JSONResponse
 from typing import List
 import random
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 
+
+ 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -22,6 +25,17 @@ names_list = [
     {"id":4, "name": "zahra"},
     {"id":5, "name": "BAgher"}
 ]
+
+@dataclass
+class Student:
+    name: str
+    age: int
+
+@dataclass
+class StudentResponse:
+    id: int
+    name: str
+
 
 
 @app.get("/")
@@ -49,11 +63,12 @@ def retrieve_names_detail(name_id:int = Path(title = "object id in name",
     for name in names_list:
         if name["id"] == name_id:
             return name
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Object Not Found")
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Object Not Found", response_model = StudentResponse)
 
 @app.post("/names", status_code=status.HTTP_201_CREATED)
-def create_name(name:str = Body(embed=True)):
-    name_obj ={"id": random.randint(6,100), "name": name}
+#def create_name(name:str = Body(embed=True)):
+def create_name(student: Student):
+    name_obj = {"id": random.randint(6,100), "name": student.name}
     names_list.append(name_obj)
     return name_obj
 
