@@ -22,6 +22,18 @@ async def lifespan(app: FastAPI):
     yield
     print("app says bybye")
 
-app = FastAPI(lifespan=lifespan, openapi_tags=tags_metadata)
+app = FastAPI(
+    title="todo app",
+    description="learning how to code",
+    version="0.0.1",
+    terms_of_service="http://example.com/terms/",
+    contact={
+        "name": "Ali Farzanegan",
+        "url": "https://google.com",
+        "email": "example@gmail.com",
+    },
+    license_info={
+        "name": "MIT"}
+        ,lifespan=lifespan, openapi_tags=tags_metadata)
 
-app.include_router(tasks_routes)
+app.include_router(tasks_routes, prefix="/api/v1")
