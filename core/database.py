@@ -1,11 +1,11 @@
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey 
+from sqlalchemy import create_engine, Column, Integer, String 
 from sqlalchemy.orm import sessionmaker, declarative_base
+from config import settings
 
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///E:/Educationals/FastAPI-tutorial-service/sqlite.db"
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
+    settings.SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False}
 )
 

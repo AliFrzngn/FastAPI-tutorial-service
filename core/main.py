@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Query, status, HTTPException, Path, Form, Body, File, UploadFile, Depends
 from fastapi.responses import JSONResponse
 from typing import List
-import random
 from contextlib import asynccontextmanager
 from schemas import PersonCreateSchema, PersonResponseSchema, PersonUpdateSchema
 from database import Base, engine, get_db, Person
@@ -11,7 +10,6 @@ from sqlalchemy.orm import Session
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("App says hello")
-    Base.metadata.create_all(engine)
     yield
     print("App says goodbye")
 
@@ -19,13 +17,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-names_list = [
-    {"id":1, "name": "ali"},
-    {"id":2, "name": "maryam"},
-    {"id":3, "name": "arousha"},
-    {"id":4, "name": "zahra"},
-    {"id":5, "name": "bagher"}
-]
 
 
 @app.get("/")
