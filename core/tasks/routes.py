@@ -36,7 +36,7 @@ db: Session = Depends(get_db)):
     if not task_obj:
         raise HTTPException(status_code=404, detail="Task not found")
 
-    for field , value in request.dict(exclude_unset=True).items():
+    for field , value in request.model_dump(exclude_unset=True).items():
         setattr(task_obj, field, value)
     db.commit()
     db.refresh(task_obj)
