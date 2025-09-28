@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 
 class TaskBaseSchema(BaseModel):
     title: str = Field(..., min_length=3,
