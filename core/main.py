@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from tasks.routes import router as tasks_routes
 from users.routes import router as users_routes
 from users.models import UserModel
-from auth.token_auth import get_authenticated_user
+from auth.jwt_auth import get_authenticated_user
 
 
 tags_metadata = [
@@ -50,6 +50,6 @@ def public_route():
     return {"message": "This is a public route"}
 
 @app.get("/private")
-def private_route():
-    print()
+def private_route(user: UserModel = Depends(get_authenticated_user)):
+    print(user.id)
     return {"message": "This is a private route"}

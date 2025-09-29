@@ -6,15 +6,33 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import jwt
 from core.config import settings
-
+from jwt.exceptions import InvalidSignatureError, DecodeError
 security = HTTPBearer()
 
 def get_authenticated_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
 ):
-    return None
+    token = credentials.credentials
+    try:
+        decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
+        user_id = decoded.get("user_id", None)
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, user_id not found")
+        if decoded.get("type") != "access":
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, invalid token type")
+        if datetime.now() > datetime.fromtimestamp(decoded.get("exp")):
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, token expired")
+        user_obj = db.query(UserModel).filter_by(id=user_id).one()
+        return user_obj
 
+    except InvalidSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, Invalid signature")
+    except DecodeError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, decode failed")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Authentication failed, unknown error: {e}")
+    
 def generate_access_token(user_id: int, expires_in: int = 60*5) -> str:
     
     now = datetime.utcnow()
