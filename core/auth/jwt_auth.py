@@ -54,3 +54,23 @@ def generate_refresh_token(user_id: int, expires_in: int = 3600*24) -> str:
         "type": "refresh"
     }
     return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm="HS256")
+
+def decode_refresh_token(token, db: Session = Depends(get_db)):
+        try:
+            decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
+            user_id = decoded.get("user_id", None)
+            if not user_id:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, user_id not found")
+            if decoded.get("type") != "refresh":
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, invalid token type")
+            if datetime.now() > datetime.fromtimestamp(decoded.get("exp")):
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, token expired")
+            return user_id
+
+        except InvalidSignatureError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, Invalid signature")
+        except DecodeError:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed, decode failed")
+        except Exception as e:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Authentication failed, unknown error: {e}")
+        
