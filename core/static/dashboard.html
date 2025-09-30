@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Todo App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #333;
+        }
+
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .logout-btn:hover {
+            background: #c82333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .welcome-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .welcome-card h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-card p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .api-info {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .api-info h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .api-info p {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .api-endpoints {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .api-endpoints code {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Todo App Dashboard</h1>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <div class="welcome-card">
+            <h2>Welcome to your Dashboard!</h2>
+            <p>You have successfully logged in to the Todo App.</p>
+        </div>
+
+        <div class="api-info">
+            <h3>API Information</h3>
+            <p>Your authentication token is stored in localStorage. You can now use the following API endpoints:</p>
+            
+            <div class="api-endpoints">
+                <code>GET /api/v1/tasks - Get all tasks</code>
+                <code>POST /api/v1/tasks - Create a new task</code>
+                <code>PUT /api/v1/tasks/{task_id} - Update a task</code>
+                <code>DELETE /api/v1/tasks/{task_id} - Delete a task</code>
+                <code>POST /api/v1/users/refresh-token - Refresh access token</code>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+        });
+
+        function logout() {
+            // Clear tokens from localStorage
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            
+            // Redirect to login page
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

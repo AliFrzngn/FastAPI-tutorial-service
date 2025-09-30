@@ -1,8 +1,12 @@
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from tasks.routes import router as tasks_routes
 from users.routes import router as users_routes
-
+from fastapi.middleware.cors import CORSMiddleware
+import time
+from contextlib import asynccontextmanager
+import os
 
 tags_metadata = [
     {
@@ -40,3 +44,40 @@ app = FastAPI(
 
 app.include_router(tasks_routes, prefix="/api/v1")
 app.include_router(users_routes, prefix="/api/v1")
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Serve login page
+@app.get("/")
+async def serve_login():
+    return FileResponse("static/login.html")
+
+@app.get("/login")
+async def serve_login_alt():
+    return FileResponse("static/login.html")
+
+# Serve dashboard page
+@app.get("/dashboard")
+async def serve_dashboard():
+    return FileResponse("static/dashboard.html")
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    process_time = time.perf_counter() - start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
+
+origins = [
+    "http://localhost:8000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins={"*"},
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
