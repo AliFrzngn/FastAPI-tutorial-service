@@ -33,8 +33,9 @@ async def retrieve_tasks_detail(task_id: int, user: UserModel = Depends(get_auth
 
 @router.post("/task/", response_model=TaskResponseSchema)
 async def create_task(request: TaskCreateSchema, user: UserModel = Depends(get_authenticated_user), db: Session = Depends(get_db)):
-    task_obj = TaskModel(**request.model_dump())
-    task_obj.user_id = user.id
+    data = request.model_dump()
+    data.update({"user_id": user.id})
+    task_obj = TaskModel(**data)
     db.add(task_obj)
     db.commit()
     db.refresh(task_obj)
