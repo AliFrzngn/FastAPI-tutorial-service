@@ -2,9 +2,11 @@ from fastapi import APIRouter, Path, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse
 from tasks.models import *
 from tasks.schemas import *
+from users.models import UserModel
 from sqlalchemy.orm import Session
 from core.database import get_db
 from typing import List
+from auth.jwt_auth import get_authenticated_user
 
 router = APIRouter(tags=["tasks"],prefix="/todo")
 
@@ -13,23 +15,26 @@ async def retrieve_tasks_list(completed: bool = Query(None,
     description="Filter tasks by completion status"),
     limit: int = Query(10, gt=0, le=50, description="Limit the number of tasks to return"),
     offset: int = Query(0, ge=0, description="Offset the number of tasks to return"),
-    db: Session = Depends(get_db)):
-    query = db.query(TaskModel)
+    db: Session = Depends(get_db),
+    user: UserModel = Depends(get_authenticated_user)
+    ):
+    query = db.query(TaskModel).filter_by(user_id=user.id)
     if completed is not None:
         query = query.filter_by(is_completed=completed)
    
     return query.limit(limit).offset(offset).all()
 
 @router.get("/task/{task_id}", response_model=TaskResponseSchema)
-async def retrieve_tasks_detail(task_id: int, db: Session = Depends(get_db)):
-    task_obj = db.query(TaskModel).filter_by(id=task_id).first()
+async def retrieve_tasks_detail(task_id: int, user: UserModel = Depends(get_authenticated_user), db: Session = Depends(get_db)):
+    task_obj = db.query(TaskModel).filter_by(id=task_id, user_id=user.id).first()
     if not task_obj:
         raise HTTPException(status_code=404, detail="Task not found")
     return task_obj
 
 @router.post("/task/", response_model=TaskResponseSchema)
-async def create_task(request: TaskCreateSchema, db: Session = Depends(get_db)):
+async def create_task(request: TaskCreateSchema, user: UserModel = Depends(get_authenticated_user), db: Session = Depends(get_db)):
     task_obj = TaskModel(**request.model_dump())
+    task_obj.user_id = user.id
     db.add(task_obj)
     db.commit()
     db.refresh(task_obj)
@@ -38,8 +43,9 @@ async def create_task(request: TaskCreateSchema, db: Session = Depends(get_db)):
 @router.put("/task/{task_id}", response_model=TaskResponseSchema)
 async def update_task(request: TaskUpdateSchema, 
 task_id: int = Path(..., gt=0), 
+user: UserModel = Depends(get_authenticated_user),
 db: Session = Depends(get_db)):
-    task_obj = db.query(TaskModel).filter_by(id=task_id).first()
+    task_obj = db.query(TaskModel).filter_by(id=task_id, user_id=user.id).first()
     if not task_obj:
         raise HTTPException(status_code=404, detail="Task not found")
 
@@ -50,8 +56,8 @@ db: Session = Depends(get_db)):
     return task_obj
 
 @router.delete("/task/{task_id}", status_code=204)
-async def delete_task(task_id: int = Path(..., gt=0), db: Session = Depends(get_db)):
-        task_obj = db.query(TaskModel).filter_by(id=task_id).first()
+async def delete_task(task_id: int = Path(..., gt=0), user: UserModel = Depends(get_authenticated_user), db: Session = Depends(get_db)):
+        task_obj = db.query(TaskModel).filter_by(id=task_id, user_id=user.id).first()
         if not task_obj:
             raise HTTPException(status_code=404, detail="Task not found")
         db.delete(task_obj)
