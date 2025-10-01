@@ -14,11 +14,10 @@ tags_metadata = [
         "description": "Operations related to task managment",
         "externalDocs": {
             "description": "More about tasks",
-            "url": "https://google.com"
-        }
+            "url": "https://google.com",
+        },
     }
 ]
-
 
 
 @asynccontextmanager
@@ -38,12 +37,14 @@ app = FastAPI(
         "url": "https://google.com",
         "email": "example@gmail.com",
     },
-    license_info={
-        "name": "MIT"}
-        ,lifespan=lifespan, openapi_tags=tags_metadata)
+    license_info={"name": "MIT"},
+    lifespan=lifespan,
+    openapi_tags=tags_metadata,
+)
 
 app.include_router(tasks_routes, prefix="/api/v1")
 app.include_router(users_routes, prefix="/api/v1")
+
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):

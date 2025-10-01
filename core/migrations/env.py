@@ -1,11 +1,12 @@
 from logging.config import fileConfig
-import os 
+import os
 from pathlib import Path
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from dotenv import load_dotenv
 from alembic import context
 from core.database import Base
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -16,7 +17,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-ENV_PATH = BASE_DIR /".env"
+ENV_PATH = BASE_DIR / ".env"
 load_dotenv(ENV_PATH)
 SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 config = context.config
@@ -27,13 +28,13 @@ else:
     raise ValueError("SQLALCHEMY_DATABASE_URL is not set in the environment variables.")
 
 
-
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from tasks.models import *
 from users.models import *
+
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -60,7 +61,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        render_as_batch=True
+        render_as_batch=True,
     )
 
     with context.begin_transaction():

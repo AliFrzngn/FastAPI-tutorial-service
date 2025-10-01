@@ -1,0 +1,12 @@
+[flake8]
+extend-ignore = E203
+exclude = 
+    .git,
+    __pycache__,
+    build,
+    dist,
+    .venv,
+    .env,
+    migrations,
+    alembic.ini,
+    alembic,

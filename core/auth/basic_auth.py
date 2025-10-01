@@ -12,7 +12,9 @@ def get_authenticated_user(
     db: Session = Depends(get_db),
 ):
 
-    user_obj = db.query(UserModel).filter_by(username=credentials.username).one_or_none()
+    user_obj = (
+        db.query(UserModel).filter_by(username=credentials.username).one_or_none()
+    )
     if not user_obj:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
