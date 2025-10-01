@@ -3,18 +3,23 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from users.models import UserModel, TokenModel
 from core.database import get_db
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import jwt
 from core.config import settings
 from jwt.exceptions import InvalidSignatureError, DecodeError
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def get_authenticated_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
 ):
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed, no token provided",
+        )
     token = credentials.credentials
     try:
         decoded = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
@@ -56,7 +61,7 @@ def get_authenticated_user(
 
 def generate_access_token(user_id: int, expires_in: int = 60 * 5) -> str:
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     payload = {
         "type": "access",
         "user_id": user_id,
@@ -68,7 +73,7 @@ def generate_access_token(user_id: int, expires_in: int = 60 * 5) -> str:
 
 def generate_refresh_token(user_id: int, expires_in: int = 3600 * 24) -> str:
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     payload = {
         "user_id": user_id,
         "iat": now,

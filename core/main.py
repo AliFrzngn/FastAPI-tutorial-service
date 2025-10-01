@@ -51,8 +51,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(tasks_routes, prefix="/api/v1")
-app.include_router(users_routes, prefix="/api/v1")
+#app.include_router(tasks_routes, prefix="/api/v1")
+app.include_router(tasks_routes)
+# app.include_router(users_routes, prefix="/api/v1")
+app.include_router(users_routes)
 
 # Mount static files
 static_path = os.path.join(os.path.dirname(__file__), "static")
