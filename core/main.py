@@ -42,8 +42,34 @@ app = FastAPI(
     openapi_tags=tags_metadata,
 )
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(tasks_routes, prefix="/api/v1")
 app.include_router(users_routes, prefix="/api/v1")
+
+# Mount static files
+static_path = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=static_path), name="static")
+
+# Routes for HTML pages
+@app.get("/login")
+async def login_page():
+    return FileResponse(os.path.join(static_path, "login.html"))
+
+@app.get("/dashboard")
+async def dashboard_page():
+    return FileResponse(os.path.join(static_path, "dashboard.html"))
+
+@app.get("/")
+async def root():
+    return FileResponse(os.path.join(static_path, "login.html"))
 
 
 @app.middleware("http")
