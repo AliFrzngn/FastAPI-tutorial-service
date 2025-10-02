@@ -5,10 +5,22 @@ from tasks.routes import router as tasks_routes
 from users.routes import router as users_routes
 from fastapi.middleware.cors import CORSMiddleware
 import time
+from datetime import datetime
 from contextlib import asynccontextmanager
 import os
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.exceptions import RequestValidationError
+from fastapi import BackgroundTasks
+from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+
+scheduler = AsyncIOScheduler()
+
+
+def my_task():
+    print(f"Task executed at {datetime.now()}")
+
 
 tags_metadata = [
     {
@@ -25,7 +37,10 @@ tags_metadata = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("app says hello")
+    scheduler.add_job(my_task, IntervalTrigger(seconds=10))
+    scheduler.start()
     yield
+    scheduler.shutdown()
     print("app says bybye")
 
 
@@ -109,4 +124,19 @@ async def validation_exception_handler(request, exc):
         "reason": exc.errors,
         "errors": exc.errors(),
     }
-    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content=error_response)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, content=error_response
+    )
+
+
+def start_task():
+    print("Starting task")
+    print("Processing...")
+    time.sleep(10)
+    print("finished task")
+
+
+@app.get("/initiate-task", status_code=200)
+async def initiate_task(background_tasks: BackgroundTasks):
+    background_tasks.add_task(start_task)
+    return JSONResponse(content={"message": "Task initiated"})

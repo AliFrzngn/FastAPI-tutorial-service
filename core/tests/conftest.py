@@ -7,17 +7,16 @@ from faker import Faker
 from users.models import UserModel
 from tasks.models import TaskModel
 from auth.jwt_auth import generate_access_token
+
 fake = Faker()
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 
-
-
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-     connect_args={"check_same_thread": False},
-     poolclass=StaticPool
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
 
 
@@ -33,24 +32,28 @@ def db_session():
     finally:
         db.close()
 
+
 # module
-@pytest.fixture(scope="module",autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def override_dependencies(db_session):
     app.dependency_overrides[get_db] = lambda: db_session
     yield
     app.dependency_overrides.pop(get_db, None)
 
+
 # module
-@pytest.fixture(scope="session",autouse=True)
+@pytest.fixture(scope="session", autouse=True)
 def tearup_and_down_database():
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
 
+
 @pytest.fixture(scope="package")
 def anon_client():
     client = TestClient(app)
     yield client
+
 
 @pytest.fixture(scope="package")
 def auth_client(db_session):
@@ -61,8 +64,7 @@ def auth_client(db_session):
     yield client
 
 
-
-@pytest.fixture(scope="package",autouse=True)
+@pytest.fixture(scope="package", autouse=True)
 def generate_mock_data(db_session):
 
     user = UserModel(username="usertest")
@@ -85,7 +87,8 @@ def generate_mock_data(db_session):
     db_session.add_all(tasks_list)
     db_session.commit()
 
-@pytest.fixture(scope="function",autouse=True)
+
+@pytest.fixture(scope="function", autouse=True)
 def random_task(db_session):
     user = db_session.query(UserModel).filter_by(username="usertest").one()
     task = db_session.query(TaskModel).filter_by(user_id=user.id).first()
