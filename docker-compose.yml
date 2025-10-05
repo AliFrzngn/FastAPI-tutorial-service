@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   db:
     image: postgres:15-alpine
@@ -16,6 +14,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+    ports:
+      - "5432:5432"
 
   backend:
     build:
@@ -24,6 +24,9 @@ services:
     container_name: backend
     depends_on:
       - db
+    environment:
+      SQLALCHEMY_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+      JWT_SECRET_KEY: (7!#dcb+c!ald0s=1&(gt8amhs38&%%k%l0y=4$)^q6zygi8*r
     ports:
       - "8000:8000"
     command: bash -c 'fastapi dev --host 0.0.0.0 --port 8000'

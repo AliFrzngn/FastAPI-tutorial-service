@@ -18,15 +18,13 @@ if config.config_file_name is not None:
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_PATH = BASE_DIR / ".env"
-load_dotenv(ENV_PATH)
-SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
-config = context.config
 
-if SQLALCHEMY_DATABASE_URL:
-    config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
+if ENV_PATH.exists():
+    load_dotenv(ENV_PATH)
 else:
-    raise ValueError("SQLALCHEMY_DATABASE_URL is not set in the environment variables.")
+    print("No .env file found")
 
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -60,9 +58,7 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
-        render_as_batch=True,
-    )
+        dialect_opts={"paramstyle": "named"})
 
     with context.begin_transaction():
         context.run_migrations()
@@ -83,8 +79,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata, render_as_batch=True
-        )
+            connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
