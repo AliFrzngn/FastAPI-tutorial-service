@@ -30,8 +30,8 @@ SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from tasks.models import *
-from users.models import *
+from tasks.models import TaskModel
+from users.models import UserModel, TokenModel
 
 target_metadata = Base.metadata
 

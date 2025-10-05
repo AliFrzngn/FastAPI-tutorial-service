@@ -2,7 +2,6 @@ from sqlalchemy import (
     Column,
     String,
     Integer,
-    Text,
     Boolean,
     func,
     DateTime,
@@ -34,10 +33,10 @@ class UserModel(Base):
     def hash_password(self, plain_password: str) -> str:
         return pwd_context.hash(plain_password)
 
-    def verify_password(self, plain_password: str) -> bool:
+    def verify_password(self, plain_password):
         return pwd_context.verify(plain_password, self.password)
 
-    def set_password(self, plain_text: str) -> None:
+    def set_password(self, plain_text):
         if len(plain_text.encode("utf-8")) > 72:
             raise ValueError("Password cannot be longer than 72 bytes")
         self.password = self.hash_password(plain_text)

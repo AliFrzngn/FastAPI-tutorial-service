@@ -62,6 +62,7 @@ sniffio==1.3.1
 SQLAlchemy==2.0.43
 starlette==0.48.0
 typer==0.19.2
+types-passlib==1.7.7.20250602
 typing-inspection==0.4.1
 typing_extensions==4.15.0
 tzdata==2025.2
