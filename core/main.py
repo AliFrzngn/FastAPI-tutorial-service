@@ -21,6 +21,9 @@ from redis import asyncio as aioredis
 from core.config import settings
 import logging
 from utility.email_util import send_email
+from core.celery_conf import add_numbers
+from celery.result import AsyncResult
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -160,6 +163,16 @@ def start_task():
 async def initiate_task(background_tasks: BackgroundTasks):
     background_tasks.add_task(start_task)
     return JSONResponse(content={"message": "Task initiated"})
+
+@app.get("/initiate-celery-task", status_code=200)
+async def initiate_celery_task():
+    add_numbers.delay(1, 2)
+    return JSONResponse(content={"detail": add_numbers.delay(1, 2).id})
+
+@app.get("/check-celery-task-result", status_code=200)
+async def check_celery_task(task_id: str):
+    result = AsyncResult(task_id).ready()
+    return JSONResponse(content={"result": result})
 
 
 async def request_current_weather(latitude: float, longitude: float):

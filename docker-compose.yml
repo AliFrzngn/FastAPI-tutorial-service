@@ -73,5 +73,45 @@ services:
     volumes:
       - ./core:/usr/src/core
 
+    
+  celery_worker:
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    container_name: celery_worker
+    depends_on:
+      - db
+      - redis
+    environment:
+      SQLALCHEMY_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+      JWT_SECRET_KEY: (7!#dcb+c!ald0s=1&(gt8amhs38&%%k%l0y=4$)^q6zygi8*r
+      REDIS_URL: redis://redis:6379
+    command: bash -c 'celery -A core.celery_conf worker --loglevel=info'
+    volumes:
+    - ./core:/usr/src/core
+  celery_beat:
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    container_name: celery_beat
+    depends_on:
+      - db
+      - redis
+    environment:
+      SQLALCHEMY_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
+      JWT_SECRET_KEY: (7!#dcb+c!ald0s=1&(gt8amhs38&%%k%l0y=4$)^q6zygi8*r
+      REDIS_URL: redis://redis:6379
+    command: bash -c 'celery -A core.celery_conf beat --loglevel=info'
+    volumes:
+    - ./core:/usr/src/core
+  
+  flower:
+    image: mher/flower:0.9.7
+    command: ['flower', '--broker=redis://redis:6379/3', '--port=5555']
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"
+
 volumes:
   smtp4dev-data:

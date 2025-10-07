@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     MAIL_STARTTLS: bool = False
     USE_CREDENTIALS: bool = False
 
+    CELERY_BROKER_URL: str = "redis://redis:6379/3"
+    CELERY_BACKEND_URL: str = "redis://redis:6379/3"
     model_config = SettingsConfigDict(env_file=".env")
 
 
