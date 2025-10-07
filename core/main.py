@@ -5,7 +5,6 @@ from tasks.routes import router as tasks_routes
 from users.routes import router as users_routes
 from fastapi.middleware.cors import CORSMiddleware
 import time
-from datetime import datetime
 from contextlib import asynccontextmanager
 import os
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -13,20 +12,34 @@ from fastapi.exceptions import RequestValidationError
 from fastapi import BackgroundTasks
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.redis import RedisJobStore
 import httpx
 from fastapi_cache import FastAPICache
-from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
+from redis import asyncio as aioredis
+from core.config import settings
+import logging
+from utility.email_util import send_email
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 
-cache_backend = InMemoryBackend()
-FastAPICache.init(cache_backend)
+jobstores = {
+    "default": RedisJobStore(jobs_key="apscheduler.jobs",
+    run_times_key="apscheduler.run_times",
+     host="redis", port=6379, db=1)
+}
+redis = aioredis.from_url(settings.REDIS_URL)
+cache_backend = RedisBackend(redis)
+FastAPICache.init(cache_backend, prefix="fastapi-cache")
 
-scheduler = AsyncIOScheduler()
+scheduler = AsyncIOScheduler(jobstores=jobstores)
 
 
 def my_task():
-    print(f"Task executed at {datetime.now()}")
+    logger.info(f"Task executed at {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
 
 tags_metadata = [
@@ -44,7 +57,7 @@ tags_metadata = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("app says hello")
-    scheduler.add_job(my_task, IntervalTrigger(seconds=10))
+    scheduler.add_job(my_task, IntervalTrigger(seconds=10), id="my_task", replace_existing=True)
     scheduler.start()
     yield
     scheduler.shutdown()
@@ -172,8 +185,18 @@ async def request_current_weather(latitude: float, longitude: float):
 @cache(expire=10)
 async def fetch_current_weather(latitude: float = 40.7128, longitude: float = -74.0060):
     current_weather = await request_current_weather(latitude, longitude)
-    print(current_weather)
+
     if current_weather:
         return JSONResponse(content={"current_weather": current_weather})
     else:
         return JSONResponse(content={"error": "Failed to fetch current weather"}, status_code=500)
+
+
+@app.get("/test-send-email", status_code=200)
+async def test_send_email():
+    await send_email(
+        subject="Test Email",
+        recipients=["test@example.com"],
+        body="This is a test email"
+    )
+    return JSONResponse(content={"message": "Email sent successfully"})

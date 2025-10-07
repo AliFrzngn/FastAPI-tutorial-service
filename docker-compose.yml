@@ -16,6 +16,37 @@ services:
       start_period: 30s
     ports:
       - "1000:5432"
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    restart: always
+    ports:
+      # Change the number before : to the port the web interface should be accessible on
+      # Add 127.0.0.1: prefix for localhost-only access (recommended for security)
+      - '5000:80'
+      # Change the number before : to the port the SMTP server should be accessible on
+      # Add 127.0.0.1: prefix for localhost-only access (recommended for security)
+      - '25:25'
+      # Change the number before : to the port the IMAP server should be accessible on
+      # Add 127.0.0.1: prefix for localhost-only access (recommended for security)
+      - '143:143'
+      # Change the number before : to the port the POP3 server should be accessible on
+      # Add 127.0.0.1: prefix for localhost-only access (recommended for security)
+      - '110:110'
+    volumes:
+      # This is where smtp4dev stores the database..
+        - smtp4dev-data:/smtp4dev
 
   backend:
     build:
@@ -24,11 +55,16 @@ services:
     container_name: backend
     depends_on:
       - db
+      - redis
     environment:
       SQLALCHEMY_DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
       JWT_SECRET_KEY: (7!#dcb+c!ald0s=1&(gt8amhs38&%%k%l0y=4$)^q6zygi8*r
+      REDIS_URL: redis://redis:6379
     ports:
       - "8000:8000"
     command: bash -c 'fastapi dev --host 0.0.0.0 --port 8000'
     volumes:
       - ./core:/usr/src/core
+
+volumes:
+  smtp4dev-data:
